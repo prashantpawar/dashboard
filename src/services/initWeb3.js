@@ -1,4 +1,8 @@
 import Web3 from 'web3'
+import ProviderEngine from 'web3-provider-engine'
+import RpcSubprovider from 'web3-provider-engine/subproviders/rpc'
+
+const LedgerWalletSubproviderFactory = require('ledger-wallet-provider').default
 
 export const connectToMetamask = async () => {
 
@@ -20,7 +24,20 @@ export const connectToMetamask = async () => {
 
 }
 
-export const initWeb3 = () => {
+
+export const initLedgerProvider = async (chainUrl) => {
+
+  let engine = new ProviderEngine()
+  let web3 = new Web3(engine)
+  let ledgerWalletSubProvider = await LedgerWalletSubproviderFactory()
+  engine.addProvider(ledgerWalletSubProvider)
+  engine.addProvider(new RpcSubprovider({rpcUrl: chainUrl }))  
+  let accounts = await web3.eth.getAccounts()  
+
+}
+
+
+export const initWeb3 = async () => {
 
   return new Promise(
     async (resolve, reject) => {
@@ -40,9 +57,9 @@ export const initWeb3 = () => {
       }
       window.web3 = myWeb3
       resolve(myWeb3)
-
     }
   )
+
 
 }
 

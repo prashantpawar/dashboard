@@ -108,8 +108,10 @@ const checkDeps = async (next) => {
     return
   }
 
+  console.log("The RPC url", store.getters.currentRPCUrl)
+
   try {
-    let web3js = await initWeb3()
+    let web3js = await initWeb3(store.state.DPOS.walletProvider)
     store.commit("DPOS/setConnectedToMetamask", true)
     store.commit("DPOS/setWeb3", web3js)    
     let accounts = await web3js.eth.getAccounts()

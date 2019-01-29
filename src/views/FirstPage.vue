@@ -11,8 +11,33 @@
 
         <div class="container mb-5 column">
           <div class="row my-3 p-3 d-flex justify-content-center mb-auto mt-auto">
-            <div class="col col-lg-6 d-flex flex-column justify-content-center ">
+            <div class="col col-lg-8 d-flex flex-column justify-content-center ">
               <img src="../assets/loomy-player-one.png" class="loomy-graphic">
+
+              <div class="row mb-5 wallet-provider-container">
+                <div class="col">
+                  <b-card class="text-center" @click="selectWallet('ledger')">
+                    <img src="../assets/ledger_logo.svg">
+                    <p>
+                      Connect & sign via your <br>
+                      hardware wallet                      
+                    </p>
+                    <span id="ledgerInfo" class="qa">? </span>
+                    <b-tooltip target="ledgerInfo" placement="bottom" title="Click here to connect with your Ledger hardware wallet"></b-tooltip>
+                  </b-card>
+                </div>
+                <div class="col">
+                  <b-card class="text-center" @click="selectWallet('metamask')">
+                    <img src="../assets/metamask_logo.png">
+                    <p>
+                      Connect & sign via your browser <br>
+                      or extension                      
+                    </p>
+                    <span id="metamaskInfo" class="qa">? </span>
+                    <b-tooltip target="metamaskInfo" placement="bottom" title="Click here to connect with your Metamask wallet"></b-tooltip>
+                  </b-card>                  
+                </div>                
+              </div>
               <div class="d-flex flex-column justify-content-center align-items-center flex-wrap">
                 <!-- <b-button class="top-border bottom-border button" v-if="userIsLoggedIn" @click="signOutHandler"><p class="mb-0 color-grey"><b>Sign out</b></p><p class="mb-0 color-grey">Sign out account</p></b-button>
                 <b-button class="top-border bottom-border button" v-else @click="openLoginModal"><p class="mb-0 color-grey"><b>Login</b></p><p class="mb-0 color-grey">Sign in with existing account</p></b-button>
@@ -50,6 +75,8 @@ import RestoreAccountModal from '../components/modals/RestoreAccountModal'
 import { mapGetters, mapState, mapActions, mapMutations, createNamespacedHelpers } from 'vuex'
 const bip39 = require('bip39')
 
+import { initLedgerProvider } from '../services/initWeb3'
+
 const DPOSStore = createNamespacedHelpers('DPOS')
 const DappChainStore = createNamespacedHelpers('DappChain')
 
@@ -77,6 +104,7 @@ const DappChainStore = createNamespacedHelpers('DappChain')
     ]),
     ...DappChainStore.mapGetters([
       'currentChain',
+      'currentRPCUrl'
     ])    
   },
   methods: {    
@@ -121,6 +149,17 @@ export default class FirstPage extends Vue {
       return true
     }
     return false
+  }
+
+  selectWallet(wallet) {
+    
+    if(wallet === "ledger") {
+      if(this.currentRPCUrl) initLedgerProvider(this.currentRPCUrl)     
+    } else if(wallet === "metamask") {
+
+    } else {
+      return
+    }
   }
 
   openCreateAccountModal() {
@@ -265,6 +304,30 @@ $theme-colors: (
     width: 100%;
     max-width: 360px;
     height: auto;
+  }
+
+  .wallet-provider-container {
+    .col {
+      position: relative;
+      img {
+        width: 96px;
+        height: auto;
+        margin-bottom: 12px;
+      }
+      span.qa {        
+        display: inline-block;
+        line-height: 20px;        
+        right: 12px;
+        bottom: 12px;
+        position: absolute;
+        font-weight: bold;
+        width: 20px;
+        height: 20px;
+        color: white;
+        background-color: grey;
+        border-radius: 50%;
+      }
+    }
   }
 }
 
