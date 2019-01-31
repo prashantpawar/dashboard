@@ -8,6 +8,7 @@
         <seed-phrase-modal ref="seedPhraseRef" @ok="onGenerateSeeds"/>
         <confirm-seed-modal ref="confirmSeedRef" @ok="onConfirmSeeds"/>
         <restore-account-modal ref="restoreAccountModal" @ok="onRestoreAccount"/>
+        <hardware-wallet-modal ref="hardwareWalletConfigRef" @ok="onWalletConfig"/>
 
         <div class="container mb-5 column">
           <div class="row my-3 p-3 d-flex justify-content-center mb-auto mt-auto">
@@ -72,6 +73,7 @@ import ChainSelector from '../components/ChainSelector'
 import SeedPhraseModal from '../components/modals/SeedPhraseModal'
 import ConfirmSeedModal from '../components/modals/ConfirmSeedModal'
 import RestoreAccountModal from '../components/modals/RestoreAccountModal'
+import HardwareWalletModal from '../components/modals/HardwareWalletModal'
 import { mapGetters, mapState, mapActions, mapMutations, createNamespacedHelpers } from 'vuex'
 const bip39 = require('bip39')
 
@@ -84,10 +86,11 @@ const DappChainStore = createNamespacedHelpers('DappChain')
   components: {
     FaucetHeader,
     FaucetFooter,
-    ChainSelector,
+    ChainSelector,    
     SeedPhraseModal,
     ConfirmSeedModal,
-    RestoreAccountModal
+    RestoreAccountModal,
+    HardwareWalletModal
   },
   computed: {
     ...mapState([
@@ -151,10 +154,11 @@ export default class FirstPage extends Vue {
     return false
   }
 
-  selectWallet(wallet) {
+  async selectWallet(wallet) {
     
     if(wallet === "ledger") {
-      if(this.currentRPCUrl) initLedgerProvider(this.currentRPCUrl)     
+      let web3 = await initLedgerProvider()
+      this.$refs.hardwareWalletConfigRef.show(web3)
     } else if(wallet === "metamask") {
 
     } else {
@@ -223,6 +227,10 @@ export default class FirstPage extends Vue {
     })
     this.setUserIsLoggedIn(true)
     await this.gotoAccount()
+  }
+
+  onWalletConfig() {
+    
   }
 
   get STATUS() {

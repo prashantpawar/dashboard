@@ -1,41 +1,39 @@
 import Web3 from 'web3'
-import ProviderEngine from 'web3-provider-engine'
-import RpcSubprovider from 'web3-provider-engine/subproviders/rpc'
 
-const LedgerWalletSubproviderFactory = require('ledger-wallet-provider').default
+import ProviderEngine from "web3-provider-engine"
+import FetchSubprovider from "web3-provider-engine/subproviders/fetch"
+import TransportU2F from "@ledgerhq/hw-transport-u2f"
+import createLedgerSubprovider from "@ledgerhq/web3-subprovider"
 
-export const connectToMetamask = async () => {
-
-  let web3js
-  if (window.ethereum) {
-    window.web3 = new Web3(ethereum)
-    web3js = new Web3(ethereum)
-    await ethereum.enable();
-  } else if (window.web3) {
-    window.web3 = new Web3(window.web3.currentProvider)
-    web3js = new Web3(window.web3.currentProvider)
-  } else {
-    throw 'Metamask is not Enabled'
-  }
-  
-  if(web3js) {
-    return web3js
-  }
-
-}
-
+const rpcUrl = "https://ropsten.infura.io"
+const networkId = 3
 
 export const initLedgerProvider = async (chainUrl) => {
 
-  let engine = new ProviderEngine()
-  let web3 = new Web3(engine)
-  let ledgerWalletSubProvider = await LedgerWalletSubproviderFactory()
-  engine.addProvider(ledgerWalletSubProvider)
-  engine.addProvider(new RpcSubprovider({rpcUrl: chainUrl }))  
-  let accounts = await web3.eth.getAccounts()  
+  return new Promise(
+    async (resolve, reject) => {
+      let myWeb3 = null
+      try {
+        const engine = new ProviderEngine()
+        const getTransport = () => TransportU2F.create()
+        const ledger = createLedgerSubprovider(getTransport, {
+          networkId,
+          accountsLength: 5
+        })
+        engine.addProvider(ledger)
+        engine.addProvider(new FetchSubprovider({ rpcUrl }))
+        engine.start()
+        myWeb3 = new Web3(engine)
+      } catch(err) {
+        reject("error initializing hardware wallet")
+      }
+      
+      window.web3 = myWeb3
+      resolve(myWeb3)
+    }
+  )
 
 }
-
 
 export const initWeb3 = async () => {
 
@@ -50,7 +48,6 @@ export const initWeb3 = async () => {
           reject("User denied access to Metamask")
         }
       } else if(window.web3) {
-        debugger
         myWeb3 = new Web3(window.web3.currentProvider)
       } else {
         reject("no Metamask installation detected")
@@ -60,28 +57,4 @@ export const initWeb3 = async () => {
     }
   )
 
-
-}
-
-
-export const init2 = async () => {
-  let web3js
-  if (window.ethereum) {
-    window.web3 = new Web3(ethereum)
-    web3js = new Web3(ethereum)
-    try {
-      await ethereum.enable();
-    } catch (err) {
-      // this.setErrorMsg("User denied access to Metamask")
-      console.error(err)
-      return
-    }
-  } else if (window.web3) {
-    window.web3 = new Web3(window.web3.currentProvider)
-    web3js = new Web3(window.web3.currentProvider)
-  } else {
-    // this.setErrorMsg('Metamask is not Enabled')
-  }
-
-  return web3js
 }
