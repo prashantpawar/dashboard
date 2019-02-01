@@ -1,9 +1,12 @@
 import Web3 from 'web3'
 
+// import Eth from "@ledgerhq/hw-app-eth";
+// import Ledger from '@ledgerhq/hw-app-eth';
 import ProviderEngine from "web3-provider-engine"
 import FetchSubprovider from "web3-provider-engine/subproviders/fetch"
 import TransportU2F from "@ledgerhq/hw-transport-u2f"
 import createLedgerSubprovider from "@ledgerhq/web3-subprovider"
+import hdPaths from "./ledger/paths"
 
 const rpcUrl = "https://ropsten.infura.io"
 const networkId = 3
@@ -15,7 +18,7 @@ export const initLedgerProvider = async (chainUrl) => {
       let myWeb3 = null
       try {
         const engine = new ProviderEngine()
-        const getTransport = () => TransportU2F.create()
+        const getTransport = () => TransportU2F.create(3000, 3000)
         const ledger = createLedgerSubprovider(getTransport, {
           networkId,
           accountsLength: 5
