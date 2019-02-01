@@ -64,7 +64,9 @@
 import Vue from 'vue'
 import { Component } from 'vue-property-decorator'
 import LoadingSpinner from '../LoadingSpinner'
-import hdPaths from "../../services/ledger/paths"
+
+import LedgerWallet from "@/services/ledger/ledgerWallet"
+import hdPaths from "@/services/ledger/paths"
 
 @Component({
   components: {
@@ -85,6 +87,8 @@ export default class HardwareWalletModal extends Vue {
   selectedAddress = 0
 
   okHandler() {    
+    console.log("creating ledger wallet")
+    LedgerWallet()
   }
 
   mounted() {
