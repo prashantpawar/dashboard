@@ -64,40 +64,65 @@
 import Vue from 'vue'
 import { Component } from 'vue-property-decorator'
 import LoadingSpinner from '../LoadingSpinner'
-
+import { mapGetters, mapState, mapActions, mapMutations, createNamespacedHelpers } from 'vuex'
 import LedgerWallet from "@/services/ledger/ledgerWallet"
 import hdPaths from "@/services/ledger/paths"
+
+import { initWeb3 } from '../../services/initWeb3'
+
+
+const MAX_ADDRESSES = 5
 
 @Component({
   components: {
     LoadingSpinner
+  },
+  methods: {
+   ...mapMutations(['setErrorMsg', 'setSuccessMsg'])
   }
 })
 
 export default class HardwareWalletModal extends Vue {
 
+  hdWallet = undefined
+
   errorMsg = null
   accounts = []
+
   showLoadingSpinner = false
   paths = []
   addresses = []
   
-
   selectedPath = 0
   selectedAddress = 0
 
+  web3js = null
+
   okHandler() {    
-    console.log("creating ledger wallet")
-    LedgerWallet()
   }
 
   mounted() {
     this.paths = hdPaths
   }
 
-  selectPath(path, index) {
-    this.selectedPath = index
-    this.loadAddresses(path.path)
+  async selectPath(pathObj, index) {
+    const {path} = pathObj
+    await this.hdWallet.init(path)
+    let i = 0
+    while (i < MAX_ADDRESSES) {
+      try {
+        let account = await this.hdWallet.getAccount(i)
+        this.accounts.push({
+          index: i,
+          account: account,
+          balance: 'loading'
+        })
+        i++        
+      } catch(err) {
+        console.log(err)
+      }
+    }   
+    if(this.accounts.length > 0) this.getBalances()
   }
 
   selectAddress(address, index) {
@@ -108,21 +133,28 @@ export default class HardwareWalletModal extends Vue {
     console.log("Loading addresses at path: ", path)
   }
 
+
+  getBalances() {
+    this.accounts.forEach(account => {
+      this.web3js.eth
+        .getBalance(account.account.getChecksumAddressString())
+        .then(balance => {
+          account.balance = balance
+        })
+    })
+  }
+
+
   async show(myWeb3) {
-
-    this.showLoadingSpinner = true    
-
-    try {
-      // this.accounts = await myWeb3.eth.getAccounts()
-    } catch(err) {
-      // You are not logged in
-      console.log("Error: " + err)
-      this.errorMsg = "Please make sure your hardware wallet is connected"
-      return
-    }
-
-    this.showLoadingSpinner = false
+    this.web3js = await initWeb3()
     this.$refs.modalRef.show()
+    this.showLoadingSpinner = true
+    try {
+      this.hdWallet = await LedgerWallet()
+    } catch(err) { 
+      this.setErrorMsg("Please make sure your hardware wallet is connected")
+    }
+    this.showLoadingSpinner = false
   }
 
 }

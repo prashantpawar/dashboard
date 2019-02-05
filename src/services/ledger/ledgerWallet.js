@@ -2,7 +2,7 @@ import Ledger from '@ledgerhq/hw-app-eth';
 import ethTx from 'ethereumjs-tx';
 import u2fTransport from '@ledgerhq/hw-transport-u2f';
 import paths from './paths';
-import HDWalletInterface from './walletInterface';
+import HDWalletInterface from './HDWalletInterface';
 import * as HDKey from 'hdkey';
 import {
   getSignTransactionObject,
@@ -18,10 +18,10 @@ class ledgerWallet {
     this.identifier = 'ledger'
     this.isHardware = true;
     this.needPassword = NEED_PASSWORD;
-    this.supportedPaths = bip44Paths[ledgerType];
+    this.supportedPaths = paths;
   }
   async init(basePath) {
-    this.basePath = basePath ? basePath : this.supportedPaths[0].path;
+    this.basePath = basePath ? basePath : this.supportedPaths['ledgerEthereum'].path;
     this.isHardened = this.basePath.split('/').length - 1 === 2;
     this.transport = await getLedgerTransport();
     this.ledger = new Ledger(this.transport);
@@ -86,7 +86,7 @@ class ledgerWallet {
         getBufferFromHex(vHex)
       ]);
     };
-    return new HDWalletInterface(
+    let wlet =  new HDWalletInterface(
       accountPath,
       derivedKey.publicKey,
       this.isHardware,
@@ -94,6 +94,7 @@ class ledgerWallet {
       txSigner,
       msgSigner
     );
+    return wlet
   }
   getCurrentPath() {
     return this.basePath;

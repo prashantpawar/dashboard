@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import { state, getters, mutations, actions } from './applicationStore'
 import DappChainStore from './dappChainStore'
 import DPOSStore from './dposStore'
+import HDWallet from './hdWalletStore'
 
 Vue.use(Vuex)
 const store = new Vuex.Store({
@@ -12,7 +13,8 @@ const store = new Vuex.Store({
   actions,
   modules: {
     DappChain: DappChainStore,
-    DPOS: DPOSStore
+    DPOS: DPOSStore,
+    HDWallet
   }
 })
 export default store

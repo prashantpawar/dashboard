@@ -58,9 +58,9 @@ class WalletInterface {
     return ethUtil.bufferToHex(this.getAddress());
   }
 
-  // getChecksumAddressString() {
-  //   return toChecksumAddress(this.getAddressString());
-  // }
+  getChecksumAddressString() {
+    return toChecksumAddress(this.getAddressString());
+  }
   signTransaction(txParams, signer) {
     if (this.isPubOnly && typeof signer !== 'function')
       throw new Error('public key only wallets needs a signer');
