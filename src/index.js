@@ -14,6 +14,9 @@ import SolidFontAwesome from '@fortawesome/fontawesome-free-solid'
 import RegularFontAwesome from '@fortawesome/fontawesome-free-regular'
 import FontAwesomeIcon from '@fortawesome/vue-fontawesome'
 
+import Autocomplete from 'v-autocomplete'
+import 'v-autocomplete/dist/v-autocomplete.css'
+
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import 'swiper/dist/css/swiper.css'
@@ -49,6 +52,8 @@ Object.defineProperty(Vue.prototype, '$log', { value: log })
 Vue.use(VueProgressBar, progressBarOptions)
 Vue.use(BootstrapVue)
 Vue.use(VueAwesomeSwiper, {})
+Vue.use(Autocomplete)
+
 FontAwesome.library.add(BrandsFontAwesome, SolidFontAwesome, RegularFontAwesome)
 Vue.component('fa', FontAwesomeIcon)
 Vue.config.productionTip = false

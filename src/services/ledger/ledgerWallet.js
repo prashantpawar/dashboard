@@ -1,7 +1,7 @@
 import Ledger from '@ledgerhq/hw-app-eth';
 import ethTx from 'ethereumjs-tx';
 import u2fTransport from '@ledgerhq/hw-transport-u2f';
-import paths from './paths';
+import { pathsObj } from './paths';
 import HDWalletInterface from './HDWalletInterface';
 import * as HDKey from 'hdkey';
 import {
@@ -18,7 +18,7 @@ class ledgerWallet {
     this.identifier = 'ledger'
     this.isHardware = true;
     this.needPassword = NEED_PASSWORD;
-    this.supportedPaths = paths;
+    this.supportedPaths = pathsObj;
   }
   async init(basePath) {
     this.basePath = basePath ? basePath : this.supportedPaths['ledgerEthereum'].path;
@@ -86,7 +86,7 @@ class ledgerWallet {
         getBufferFromHex(vHex)
       ]);
     };
-    let wlet =  new HDWalletInterface(
+    return new HDWalletInterface(
       accountPath,
       derivedKey.publicKey,
       this.isHardware,
@@ -94,7 +94,6 @@ class ledgerWallet {
       txSigner,
       msgSigner
     );
-    return wlet
   }
   getCurrentPath() {
     return this.basePath;
@@ -123,5 +122,5 @@ const getRootPubKey = async (_ledger, _path) => {
     chainCode: pubObj.chainCode
   };
 };
-
+  
 export default createWallet;

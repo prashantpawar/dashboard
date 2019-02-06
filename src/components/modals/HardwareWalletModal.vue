@@ -3,7 +3,67 @@
     <b-container fluid>
       <b-row class="my-1 align-items-center min-height">
         <loading-spinner v-if="showLoadingSpinner" :showBackdrop="true"></loading-spinner>
-        <b-card no-body>
+
+        <div class="dropdown-container mb-4">
+          <v-autocomplete :items="filteredPaths"
+                         v-model="selectedPath"
+                         :get-label="getLabel"
+                         :component-item="dropdownTemplate"
+                         @item-selected="selectItem"
+                         @update-items="updateItems">
+          </v-autocomplete>
+        </div>
+
+        <!-- <b-card no-body>
+          <b-tabs pills card class="wallet-config-container">
+            <b-tab title="Path" active>
+              <b-form-group>
+                <div class="table-container">
+                  <table class="table b-table table-striped table-hover">
+                    <tbody>
+                      <b-form-radio-group v-model="selectedPath"
+                                          stacked
+                                          name="radiosStacked">
+                        <tr v-for="(path, _, index) in paths" :key="index" @click="selectPath(path, index)">
+                          <td>{{path.label}}</td>
+                          <td><span class="path">{{path.path}}</span></td>
+                          <td><b-form-radio :value="index"></b-form-radio></td>
+                        </tr>
+                      </b-form-radio-group>
+                    </tbody>
+                  </table> 
+                    
+                </div>
+              </b-form-group>
+            
+            </b-tab>
+
+          
+            <b-tab title="Address" :disabled="accounts.length > 0">
+              <b-form-group v-if="accounts">
+                <div class="table-container">
+                  <table class="table b-table table-striped table-hover">
+                    <tbody>
+                      <b-form-radio-group v-model="selectedAddress"
+                                          stacked
+                                          name="radiosStacked">
+                        <tr v-for="(account, index) in accounts" :key="index" @click="selectAccount(account, index)">
+                          <td>{{account.index}}</td>
+                          <td>{{formatAddress(account.account.getChecksumAddressString())}}</td>
+                          <td>{{account.balance}}</td>
+                        </tr>
+                      </b-form-radio-group>
+                    </tbody>
+                  </table>   
+                </div>
+              </b-form-group>     
+            </b-tab>
+          </b-tabs>
+        </b-card> -->
+
+
+
+        <!-- <b-card no-body>
           <b-tabs pills card id="wallet-config-tabs">
             <b-tab title="Path" active>
               <b-form-group>
@@ -20,37 +80,42 @@
                         </tr>
                       </b-form-radio-group>
                     </tbody>
-                  </table>   
+                  </table> 
+                    
                 </div>
-              </b-form-group>       
-            </b-tab>
-            <b-tab title="Address" :disabled="addresses.length > 0">
-              <b-form-group v-if="addresses">
-                <div class="table-container">
-                  <table class="table b-table table-striped table-hover">
-                    <tbody>
-                      <b-form-radio-group v-model="selectedAddress"
-                                          stacked
-                                          name="radiosStacked">
-                        <tr v-for="(address, index) in addresses" :key="index" @click="selectAddress(address, index)">
-                          <td>{{address}}</td>
-                          <td><b-form-radio :value="index"></b-form-radio></td>
-                        </tr>
-                      </b-form-radio-group>
-                    </tbody>
-                  </table>   
-                </div>
-              </b-form-group>     
-            </b-tab>
-          </b-tabs>
-        </b-card>
+              </b-form-group>
+            
+            </b-tab> -->
 
+
+        <b-card no-body class="wallet-config-container">
+          <b-form-group v-if="accounts">
+            <div class="table-container">
+              <table class="table b-table table-striped table-hover">
+                <tbody>
+                  <b-form-radio-group v-model="selectedAddress"
+                                      stacked
+                                      name="radiosStacked">
+                    <tr v-for="(account, index) in accounts" :key="index" @click="selectAccount(account, index)">
+                      <td>{{account.index}}</td>
+                      <td>{{formatAddress(account.account.getChecksumAddressString())}}</td>
+                      <td>{{formatBalance(account.balance)}}</td>
+                      <td><b-form-radio :value="index"></b-form-radio></td>
+                    </tr>
+                  </b-form-radio-group>
+                </tbody>
+              </table>   
+            </div>
+          </b-form-group>          
+        </b-card>  
+ 
+<!-- 
         <b-list-group v-if="accounts.length > 0">
           <b-list-group-item v-for="(account, index) in accounts" :key="index">{{account}}</b-list-group-item>
         </b-list-group>
         <div v-else>
           No addresses detected
-        </div>
+        </div> -->
       </b-row>
       <b-row class="my-1 justify-content-between pt-4">
         <span v-if="errorMsg" class="text-error  mt-2" variant="error">{{errorMsg}}</span>
@@ -64,11 +129,14 @@
 import Vue from 'vue'
 import { Component } from 'vue-property-decorator'
 import LoadingSpinner from '../LoadingSpinner'
+import DropdownTemplate from './DropdownTemplate'
 import { mapGetters, mapState, mapActions, mapMutations, createNamespacedHelpers } from 'vuex'
 import LedgerWallet from "@/services/ledger/ledgerWallet"
-import hdPaths from "@/services/ledger/paths"
+import { pathsArr as hdPaths } from "@/services/ledger/paths"
 
+import { formatToCrypto } from '../../utils'
 import { initWeb3 } from '../../services/initWeb3'
+import { setTimeout } from 'timers';
 
 
 const MAX_ADDRESSES = 5
@@ -91,41 +159,77 @@ export default class HardwareWalletModal extends Vue {
 
   showLoadingSpinner = false
   paths = []
+  filteredPaths = []
   addresses = []
-  
-  selectedPath = 0
+  selectedPath = hdPaths.paths[0]
   selectedAddress = 0
+  dropdownTemplate = DropdownTemplate
 
-  web3js = null
+  web3js = undefined
 
   okHandler() {    
   }
 
   mounted() {
-    this.paths = hdPaths
+    this.paths = hdPaths.paths
+    this.filteredPaths = hdPaths.paths
   }
 
-  async selectPath(pathObj, index) {
-    const {path} = pathObj
-    await this.hdWallet.init(path)
+  getLabel(item) {
+    if(!item) return
+    return item.label
+  }
+
+  updateItems(query) {
+    if(query) {
+      this.filteredPaths = this.paths.filter((item) => {
+        return item.label.toLowerCase().includes(query.toLowerCase())
+      })
+    } else {
+      this.filteredPaths = this.paths
+    }
+  }
+
+  async selectItem(item) {
+    if(!item) return
+    const {path} = item
+    await this.selectPath(path)
+  }
+
+  async selectPath(path) {
+
+    if(typeof this.hdWallet ===  "undefined") this.hdWallet = await LedgerWallet()
+
+    try {
+      await this.hdWallet.init(path)
+    } catch(err) {
+      this.$log("err", err)
+      return
+    }
+    
     let i = 0
+    let accountsTemp = []
     while (i < MAX_ADDRESSES) {
       try {
         let account = await this.hdWallet.getAccount(i)
-        this.accounts.push({
+        accountsTemp.push({
           index: i,
           account: account,
           balance: 'loading'
         })
-        i++        
+        i++ 
       } catch(err) {
-        console.log(err)
+        this.$log("err", err)
+        this.setErrorMsg({msg: "Please make sure your hardware wallet is connected", forever: false})
+        return
       }
-    }   
-    if(this.accounts.length > 0) this.getBalances()
+    }
+    this.accounts = accountsTemp
+    if(this.accounts.length > 0) await this.getBalances()
+
   }
 
-  selectAddress(address, index) {
+  selectAccount(address, index) {
     
   }
 
@@ -134,7 +238,8 @@ export default class HardwareWalletModal extends Vue {
   }
 
 
-  getBalances() {
+  async getBalances() {
+    if(typeof this.web3js === "undefined") this.web3js = await initWeb3()
     this.accounts.forEach(account => {
       this.web3js.eth
         .getBalance(account.account.getChecksumAddressString())
@@ -144,16 +249,26 @@ export default class HardwareWalletModal extends Vue {
     })
   }
 
+  formatBalance(amount) {
+    return formatToCrypto(amount)
+  }
+
+  formatAddress(address) {
+    let cap = 10
+    return address.slice(0, cap) + "..." + address.slice(-cap, address.length)
+  }
 
   async show(myWeb3) {
     this.web3js = await initWeb3()
-    this.$refs.modalRef.show()
     this.showLoadingSpinner = true
     try {
       this.hdWallet = await LedgerWallet()
-    } catch(err) { 
-      this.setErrorMsg("Please make sure your hardware wallet is connected")
+    } catch(err) {
+      this.$log("err", err)
+      this.setErrorMsg({msg: "Please make sure your hardware wallet is connected", forever: false})
+      return
     }
+    this.$refs.modalRef.show()
     this.showLoadingSpinner = false
   }
 
@@ -187,10 +302,7 @@ label {
     }
   }
 }
-.min-height {
-  min-height: 200px;
-}
-#wallet-config-tabs {
+.wallet-config-container {
    width: 100%;
    .card-body {
     padding: 0px;
@@ -201,15 +313,56 @@ label {
     position: relative;
   }
   table {
+    margin-bottom: 0px;
     td {
       white-space: no-wrap;
       padding: 0.5rem;
     }
+    tr {
+      width: 100%;
+      display: inline-table;      
+    }
+  }
+  .form-group {
+    margin-bottom: 0px;
   }
 }
 
 .proceed-btn {
   margin-left: auto;
 }
+
+.dropdown-container {
+  width: 100%;
+  .v-autocomplete {
+    width: 100%;
+    input {
+      width: 100%;
+      border: 2px solid #f2f1f3;
+      padding: 4px 12px;
+    }
+  }
+
+  .v-autocomplete-list {
+    width: 100%;
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 999;
+    background-color: #ffffff;
+    border: 2px solid #f2f1f3;
+    .v-autocomplete-list-item {
+      cursor: pointer;
+      padding: 6px 12px;
+      border-bottom: 2px solid #f2f1f3;
+      &:last-child {
+        border-bottom: none;
+      }
+      &:hover {
+        background-color: #eeeeee;
+      }
+    }
+  }
+}
+
 
 </style>
