@@ -14,80 +14,6 @@
           </v-autocomplete>
         </div>
 
-        <!-- <b-card no-body>
-          <b-tabs pills card class="wallet-config-container">
-            <b-tab title="Path" active>
-              <b-form-group>
-                <div class="table-container">
-                  <table class="table b-table table-striped table-hover">
-                    <tbody>
-                      <b-form-radio-group v-model="selectedPath"
-                                          stacked
-                                          name="radiosStacked">
-                        <tr v-for="(path, _, index) in paths" :key="index" @click="selectPath(path, index)">
-                          <td>{{path.label}}</td>
-                          <td><span class="path">{{path.path}}</span></td>
-                          <td><b-form-radio :value="index"></b-form-radio></td>
-                        </tr>
-                      </b-form-radio-group>
-                    </tbody>
-                  </table> 
-                    
-                </div>
-              </b-form-group>
-            
-            </b-tab>
-
-          
-            <b-tab title="Address" :disabled="accounts.length > 0">
-              <b-form-group v-if="accounts">
-                <div class="table-container">
-                  <table class="table b-table table-striped table-hover">
-                    <tbody>
-                      <b-form-radio-group v-model="selectedAddress"
-                                          stacked
-                                          name="radiosStacked">
-                        <tr v-for="(account, index) in accounts" :key="index" @click="selectAccount(account, index)">
-                          <td>{{account.index}}</td>
-                          <td>{{formatAddress(account.account.getChecksumAddressString())}}</td>
-                          <td>{{account.balance}}</td>
-                        </tr>
-                      </b-form-radio-group>
-                    </tbody>
-                  </table>   
-                </div>
-              </b-form-group>     
-            </b-tab>
-          </b-tabs>
-        </b-card> -->
-
-
-
-        <!-- <b-card no-body>
-          <b-tabs pills card id="wallet-config-tabs">
-            <b-tab title="Path" active>
-              <b-form-group>
-                <div class="table-container">
-                  <table class="table b-table table-striped table-hover">
-                    <tbody>
-                      <b-form-radio-group v-model="selectedPath"
-                                          stacked
-                                          name="radiosStacked">
-                        <tr v-for="(path, _, index) in paths" :key="index" @click="selectPath(path, index)">
-                          <td>{{path.label}}</td>
-                          <td><span class="path">{{path.path}}</span></td>
-                          <td><b-form-radio :value="index"></b-form-radio></td>
-                        </tr>
-                      </b-form-radio-group>
-                    </tbody>
-                  </table> 
-                    
-                </div>
-              </b-form-group>
-            
-            </b-tab> -->
-
-
         <b-card no-body class="wallet-config-container">
           <b-form-group v-if="accounts">
             <div class="table-container">
@@ -109,13 +35,6 @@
           </b-form-group>          
         </b-card>  
  
-<!-- 
-        <b-list-group v-if="accounts.length > 0">
-          <b-list-group-item v-for="(account, index) in accounts" :key="index">{{account}}</b-list-group-item>
-        </b-list-group>
-        <div v-else>
-          No addresses detected
-        </div> -->
       </b-row>
       <b-row class="my-1 justify-content-between pt-4">
         <span v-if="errorMsg" class="text-error  mt-2" variant="error">{{errorMsg}}</span>
@@ -138,15 +57,18 @@ import { formatToCrypto } from '../../utils'
 import { initWeb3 } from '../../services/initWeb3'
 import { setTimeout } from 'timers';
 
-
-const MAX_ADDRESSES = 5
+const HDWalletStore = createNamespacedHelpers('HDWallet')
 
 @Component({
   components: {
     LoadingSpinner
   },
   methods: {
-   ...mapMutations(['setErrorMsg', 'setSuccessMsg'])
+   ...mapMutations(['setErrorMsg', 'setSuccessMsg']),
+   ...HDWalletStore.mapMutations(['setAccount'])
+  },
+  computed: {
+    ...HDWalletStore.mapState(['maxAddresses'])
   }
 })
 
@@ -209,7 +131,7 @@ export default class HardwareWalletModal extends Vue {
     
     let i = 0
     let accountsTemp = []
-    while (i < MAX_ADDRESSES) {
+    while (i < this.maxAddresses) {
       try {
         let account = await this.hdWallet.getAccount(i)
         accountsTemp.push({
@@ -229,8 +151,10 @@ export default class HardwareWalletModal extends Vue {
 
   }
 
-  selectAccount(address, index) {
-    
+  selectAccount(account, index) {
+    this.setAccount(account)
+    this.$emit('ok');
+    this.$refs.modalRef.hide()
   }
 
   loadAddresses(path) {

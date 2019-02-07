@@ -229,8 +229,9 @@ export default class FirstPage extends Vue {
     await this.gotoAccount()
   }
 
-  onWalletConfig() {
-    
+  async onWalletConfig() {
+    this.setUserIsLoggedIn(true)
+    await this.gotoAccount()
   }
 
   get STATUS() {

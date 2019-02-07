@@ -4,7 +4,11 @@ import * as Utils from 'web3-utils'
 
 const defaultState = () => {
   return {
-
+    maxAddresses: 5,
+    account: {
+      path: "",
+      address: ""
+    }
   }
 }
 
@@ -42,6 +46,9 @@ export default {
   state: defaultState(),
   getters: {},
   mutations: {
+    setAccount(state, payload) {
+      this.account = payload
+    },    
   },
   actions: {
     
