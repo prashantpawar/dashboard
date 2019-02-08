@@ -78,6 +78,7 @@ import { mapGetters, mapState, mapActions, mapMutations, createNamespacedHelpers
 const bip39 = require('bip39')
 
 import { initLedgerProvider } from '../services/initWeb3'
+import { isContext } from 'vm';
 
 const DPOSStore = createNamespacedHelpers('DPOS')
 const DappChainStore = createNamespacedHelpers('DappChain')
@@ -117,7 +118,8 @@ const DappChainStore = createNamespacedHelpers('DappChain')
     ...DappChainStore.mapActions([
       'addChainUrl'
     ]),    
-    ...mapMutations(['setUserIsLoggedIn'])
+    ...mapMutations(['setUserIsLoggedIn']),
+    ...DPOSStore.mapMutations(['setIsLoggedIn'])
   }
 })
 export default class FirstPage extends Vue {
@@ -151,6 +153,7 @@ export default class FirstPage extends Vue {
       })
       return true
     }
+    this.setShowLoadingSpinner(false)
     return false
   }
 
@@ -231,6 +234,8 @@ export default class FirstPage extends Vue {
 
   async onWalletConfig() {
     this.setUserIsLoggedIn(true)
+    this.setIsLoggedIn(true)
+    localStorage.setItem("walletType", "ledger")
     await this.gotoAccount()
   }
 

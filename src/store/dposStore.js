@@ -16,7 +16,8 @@ const defaultState = () => {
       loomBalance: 0,
       mainnetBalance: 0,
       stakedAmount: 0
-    }
+    },
+    walletType: ""
   }
 }
 
@@ -24,7 +25,11 @@ const defaultState = () => {
 export default {
   namespaced: true,
   state: defaultState(),
-  getters: {},
+  getters: {
+    getWalletType(state) {
+      return localStorage.getItem('walletType')
+    }
+  },
   mutations: {
     setIsLoggedIn(state, payload) {
       state.isLoggedIn = payload
@@ -55,6 +60,9 @@ export default {
     },
     setShowLoadingSpinner(state, payload) {
       state.showLoadingSpinner = payload
+    },
+    setWalletType(state, payload) {
+      state.walletType = payload
     }
   },
   actions: {

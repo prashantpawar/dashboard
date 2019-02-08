@@ -8,7 +8,9 @@ const defaultState = () => {
     account: {
       path: "",
       address: ""
-    }
+    },
+    web3: undefined,
+    selectedAccount: ""
   }
 }
 
@@ -47,8 +49,14 @@ export default {
   getters: {},
   mutations: {
     setAccount(state, payload) {
-      this.account = payload
-    },    
+      state.account = payload
+    },
+    setWeb3(state, payload) {
+      state.web3 = payload
+    },
+    setSelectedAccount(state, payload) {
+      state.selectedAccount = payload
+    }
   },
   actions: {
     

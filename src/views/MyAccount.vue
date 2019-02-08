@@ -244,6 +244,7 @@ import { getBalance, getAddress } from '../services/dposv2Utils.js'
 import { mapGetters, mapState, mapActions, mapMutations, createNamespacedHelpers } from 'vuex'
 const DappChainStore = createNamespacedHelpers('DappChain')
 const DPOSStore = createNamespacedHelpers('DPOS')
+const HDWalletStore = createNamespacedHelpers('HDWallet')
 import Web3 from 'web3'
 
 Vue.use(VueClipboard)
@@ -264,6 +265,9 @@ Vue.use(VueClipboard)
       'dposUser',
       'mappingStatus',
       'mappingError'
+    ]),
+    ...HDWalletStore.mapState([
+      'walletType'
     ]),
     ...mapGetters([
       'getPrivateKey'
@@ -380,10 +384,12 @@ export default class MyAccount extends Vue {
 
 
   async mounted() {
-    await this.refresh(true)
     this.setShowLoadingSpinner(false)
-    this.currentAllowance = await this.checkAllowance()    
-    this.refreshInterval = setInterval(() => this.refresh(false), 5000)
+    if(this.walletType === "software") {
+      await this.refresh(true)
+      this.currentAllowance = await this.checkAllowance()    
+      this.refreshInterval = setInterval(() => this.refresh(false), 5000)      
+    }
   }
 
   destroyed() {
@@ -392,7 +398,7 @@ export default class MyAccount extends Vue {
     }
   }
 
-  async refresh(poll) {    
+  async refresh(poll) {
     if(poll) this.isLoading2 = true
     this.userAccount.address = getAddress(localStorage.getItem('privatekey'))
     this.userAccount.balance = await this.getDappchainLoomBalance()    

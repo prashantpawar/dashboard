@@ -8,8 +8,8 @@ import TransportU2F from "@ledgerhq/hw-transport-u2f"
 import createLedgerSubprovider from "@ledgerhq/web3-subprovider"
 import hdPaths from "./ledger/paths"
 
-const rpcUrl = "https://ropsten.infura.io"
-const networkId = 3
+const rpcUrl = "https://mainnet.infura.io/5Ic91y0T9nLh6qUg33K0"
+const networkId = 1
 
 export const initLedgerProvider = async (chainUrl) => {
 

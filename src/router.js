@@ -14,7 +14,7 @@ import BlockExplorer from './views/BlockExplorer.vue'
 import Rewards from './views/Rewards.vue'
 import Help from './views/Help.vue'
 
-import { initWeb3 } from './services/initWeb3'
+import { initWeb3, initLedgerProvider } from './services/initWeb3'
 
 Vue.use(VueRouter)
 
@@ -131,18 +131,42 @@ const checkDeps = async (next) => {
 
 }
 
+const checkLedgerDeps = async (next) => {
+  try {
+    let web3js = await initLedgerProvider()
+    store.commit("DPOS/setConnectedToMetamask", true)
+    store.commit("DPOS/setWeb3", web3js)
+    store.commit("DPOS/setCurrentMetmaskAddress", store.state.HDWallet.selectedAccount)
+    await store.dispatch("DappChain/init")
+    await store.dispatch("DappChain/registerWeb3", {web3: web3js})
+    await store.dispatch("DappChain/initDposUser") 
+    await store.dispatch("DappChain/ensureIdentityMappingExists", { currentAddress: store.state.HDWallet.selectedAccount } )
+    next()
+  } catch(err) {
+    console.log("Error initializing dependencies", err)
+  }
+
+}
+
 
 router.beforeEach(async (to, from, next) => {
 
-  if(to.meta.requireLogIn && !localStorage.getItem('privatekey')) {
+  // TODO: Rewrite login guards
+  // if(to.meta.requireLogIn && !localStorage.getItem('privatekey')) 
+  // {
+  //   // If using hardware wallet neglect storing private keys  
+  //   if(store.state.DPOS.isLoggedIn && store.state.DPOS.walletType === "ledger") {
+  //     next()
+  //   }
 
-    if(to.name !== 'account') {
-      store.dispatch('setError', "Login required")
-    }
+  //   if(to.name !== 'account') {
+  //     store.dispatch('setError', "Login required")
+  //     return
+  //   }
 
-    next('/login')
-    return
-  }
+  //   next('/login')
+  //   return
+  // }
 
   if(to.name === 'validatorDetail' && !to.params.info) {
     next('/validators')
@@ -156,7 +180,15 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if(to.meta.requireDeps && store.state.userIsLoggedIn) {
-    await checkDeps(next)
+    switch(store.state.DPOS.walletType) {
+      case "ledger":
+        checkLedgerDeps(next)
+      case "treznor":
+        break
+      default: 
+        await checkDeps(next)
+    }
+
   } else {
     next()
   }

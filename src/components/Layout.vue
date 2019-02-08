@@ -103,7 +103,8 @@ import { initWeb3 } from '../services/initWeb3'
     ...DPOSStore.mapMutations([
       'setConnectedToMetamask',
       'setWeb3',
-      'setCurrentMetmaskAddress'
+      'setCurrentMetmaskAddress',
+      'setWalletType'
     ])
   },  
   computed: {
@@ -176,6 +177,10 @@ export default class Layout extends Vue {
     if(localStorage.getItem("privatekey")) {
       this.setUserIsLoggedIn(true)
     }
+
+    // Dictates what web3 provider to load
+    this.setWalletType(localStorage.getItem("walletType"))
+
   }
 
   async mounted() {
