@@ -1,24 +1,27 @@
 import Web3 from 'web3'
+var ProviderEngine = require('web3-provider-engine');
+var RpcSubprovider = require('web3-provider-engine/subproviders/rpc');
+var LedgerWalletSubproviderFactory = require('ledger-wallet-provider').default;
 
-export const connectToMetamask = async () => {
+export const initWeb3Hardware = () => {
 
-  let web3js
-  if (window.ethereum) {
-    window.web3 = new Web3(ethereum)
-    web3js = new Web3(ethereum)
-    await ethereum.enable();
-  } else if (window.web3) {
-    window.web3 = new Web3(window.web3.currentProvider)
-    web3js = new Web3(window.web3.currentProvider)
-  } else {
-    throw 'Metamask is not Enabled'
-  }
-  
-  if(web3js) {
-    return web3js
-  }
+  return new Promise(
+    async (resolve, reject) => {          
+      let engine = new ProviderEngine()
+      let web3 = new Web3(engine)
+      
+      let ledgerWalletSubProvider = await LedgerWalletSubproviderFactory()
+      engine.addProvider(ledgerWalletSubProvider)
+      engine.addProvider(new RpcSubprovider({rpcUrl: 'http://localhost:8545'})) // you need RPC endpoint
+      engine.start()
+
+      window.web3 = new Web3(web3)
+      resolve(web3)
+    }
+  )
 
 }
+
 
 export const initWeb3 = () => {
 

@@ -1,6 +1,6 @@
 const { LoomProvider, CryptoUtils, Client, LocalAddress } = require('loom-js')
 import { formatToCrypto } from '../utils.js'
-import { initWeb3 } from '../services/initWeb3'
+import { initWeb3Hardware } from '../services/initWeb3'
 
 const defaultState = () => {
   return {
@@ -62,7 +62,7 @@ export default {
     async initializeDependencies({ commit, dispatch }, payload) {
       commit("setShowLoadingSpinner", true)
       try {
-        let web3js = await initWeb3()
+        let web3js = await initWeb3Hardware()
         commit("setConnectedToMetamask", true)
         commit("setWeb3", web3js, null)
         let accounts = await web3js.eth.getAccounts()
