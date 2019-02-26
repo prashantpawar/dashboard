@@ -3,6 +3,7 @@ var ProviderEngine = require('web3-provider-engine');
 var RpcSubprovider = require('web3-provider-engine/subproviders/rpc');
 var LedgerWalletSubproviderFactory = require('./ledger-wallet-provider').default;
 
+import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 import TransportU2F from "@ledgerhq/hw-transport-u2f";
 import createLedgerSubprovider from "@ledgerhq/web3-subprovider";
 import FetchSubprovider from "web3-provider-engine/subproviders/fetch";
@@ -31,12 +32,19 @@ export const connectToMetamask = async () => {
 
 export const initWeb3Hardware = () => {
 
-  
-
   return new Promise(
-    async (resolve, reject) => {          
+    async (resolve, reject) => { 
+      let Transport = TransportWebUSB
+      let supported = await Transport.isSupported()
+      if (!supported) {
+        Transport = TransportU2F
+        supported = await Transport.isSupported()
+      }
+      if (!supported) {
+        return reject(new Error("No supported ledger transport available"))
+      }         
       const engine = new ProviderEngine();
-      const getTransport = () => TransportU2F.create();
+      const getTransport = () => Transport.create();
       const ledger = createLedgerSubprovider(getTransport, {
         networkId:1,
         accountsLength: 5
