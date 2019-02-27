@@ -107,11 +107,21 @@ export default {
       commit("setShowLoadingSpinner", true)
       try {
 
-        let web3js 
-        !state.web3 ? web3js = await initWeb3() : web3js = state.web3
+        let web3js
+        let accounts
+        let metamaskAccount
 
+        if(state.walletType === "ledger") {
+          web3js = state.web3 
+          metamaskAccount = state.currentMetamaskAddress
+        } else {
+          web3js = await initWeb3()
+          let accounts = await web3js.eth.getAccounts()
+          let metamaskAccount = accounts[0]
+          commit("setWeb3", web3js, null)         
+        }
+        
         commit("setConnectedToMetamask", true)
-        commit("setWeb3", web3js, null)
         let accounts = await web3js.eth.getAccounts()
         let metamaskAccount = accounts[0]
         commit("setCurrentMetamaskAddress", metamaskAccount)
