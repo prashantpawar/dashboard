@@ -117,7 +117,7 @@ export default {
         
         commit("setConnectedToMetamask", true)
         await dispatch("DappChain/init", null, { root: true })
-        await dispatch("DappChain/registerWeb3", {web3: web3js}, { root: true })
+        await dispatch("DappChain/registerWeb3", {web3: state.web3}, { root: true })
         await dispatch("DappChain/initDposUser", null, { root: true })
         await dispatch("DappChain/ensureIdentityMappingExists", null, { root: true })
       } catch(err) {
