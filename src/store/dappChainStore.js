@@ -257,10 +257,9 @@ export default {
         console.error(err)
       }
     },
-    async getMetamaskLoomBalance({ state , commit}, payload) {
-      if (!state.web3) return 0
-
-      const web3js = state.web3
+    async getMetamaskLoomBalance({ rootState, state, commit}, payload) {
+      if (!rootState.DPOS.web3) return 0
+      const web3js = rootState.DPOS.web3
       const accounts = await web3js.eth.getAccounts()
       if (accounts.length === 0) return 0
       const address = accounts[0]
